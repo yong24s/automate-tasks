@@ -1,0 +1,20 @@
+'''
+    Create an account at https://dev.fitbit.com/apps/new
+    
+    Use the following options
+    `Personal` for `OAuth 2.0 Application Type`
+    `Default Access Type` for `Default Access Type *`
+    `http://127.0.0.1:8080` for `Callback URL *`
+'''
+
+# Update the following values 
+CLIENT_ID = '...'
+
+'''
+    Copy ACCESS_TOKEN and USER_ID from the return url in the address bar
+
+    URL: http://127.0.0.1:8080/#access_token=[ACCESS_TOKEN]&user_id=[USER_ID]...
+'''
+
+ACCESS_TOKEN='...'
+USER_ID='...'

@@ -1,0 +1,6 @@
+{
+  "name": "docker_node_app",
+  "dependencies": {
+    "nightmare": "^3.0.1"
+  }
+}

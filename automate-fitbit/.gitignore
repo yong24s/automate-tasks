@@ -115,4 +115,4 @@ dmypy.json
 .pyre/
 
 # Secrets 
-keys.py
+credentials.py

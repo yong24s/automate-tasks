@@ -1,6 +1,5 @@
 {
-  "name": "docker_node_app",
   "dependencies": {
-    "nightmare": "^3.0.1"
+    "nightmare": "yong24s/nightmare"
   }
 }

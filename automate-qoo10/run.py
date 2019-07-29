@@ -5,6 +5,7 @@ import aiofiles
 import platform
 import os
 from pyppeteer import launch
+from pyppeteer import errors
 
 async def get_credentials():
     async with aiofiles.open('credentials.txt', mode='r') as f:
@@ -24,10 +25,10 @@ async def do_daily(credential):
 
     browser = await launch(opts)
     page = await browser.newPage()
+    page.setDefaultNavigationTimeout(60 * 1000)
 
     await page.setCookie(cookie)
     await page.goto('https://www.qoo10.sg/gmkt.inc/Event/Qchance.aspx#reward')
-    await asyncio.sleep(3)
 
     try:
         output = await page.evaluate('''() => {
@@ -42,19 +43,25 @@ async def do_daily(credential):
         }''')
     
         print(output)
-    except TypeError:
+        
+    except errors.ElementHandleError:
         notify(credential[:8] + "... has expired.")
-    
-    await browser.close()
+    finally:
+        await browser.close()
 
 def notify(mesg):
     if os.path.exists('telegram.conf'):
-        os.system('/usr/bin/printf \"{}\" | /usr/local/bin/telegram-send --format markdown --config telegram.conf --stdin'.format(mesg))
+        os.system('/usr/bin/printf \"{}\" | /usr/bin/telegram-send --format markdown --config telegram.conf --stdin'.format(mesg))
 
 async def main():
     credentials = await get_credentials()
+
     for credential in credentials:
-        await do_daily(credential)
+        while (True):
+            try:
+                await do_daily(credential)
+                break
+            except errors.NetworkError:
+                await asyncio.sleep(3)
 
 asyncio.get_event_loop().run_until_complete(main())
-

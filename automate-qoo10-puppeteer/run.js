@@ -91,9 +91,9 @@ const do_qchance = async (page) => {
             await notify(err.message);
         } 
       } finally {
-          await page.close();
       }
   }
 
+  await page.close();
   await browser.close();
 })();

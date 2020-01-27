@@ -3,16 +3,19 @@
 const puppeteer = require('puppeteer-core');
 const os = require('os');
 
+const fs = require('fs')
+const { exec } = require('child_process');
+
 const { LoginError } = require('./errors/LoginError')
 const secrets = require('./secrets')
 
 const getExecPath = async () => {
     if (os.platform() === 'linux') {
-        return '/usr/bin/chromium-browser'
+        return '/usr/bin/chromium-browser';
     }
 
     if (os.platform() === 'win32') {
-        return 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+        return 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe';
     }
 
     throw new Error('Please specify a path to chrome in your platform.');
@@ -27,18 +30,28 @@ const getCookie = async (token) => {
 }
 
 const getUsername = async (page) => {
-    await page.goto('https://www.qoo10.sg/gmkt.inc/My/Default.aspx')
+    await page.goto('https://www.qoo10.sg/gmkt.inc/My/Default.aspx');
 
     const username = await page.evaluate(() => {
-      const el = document.querySelector('#content > div > div.my_dft > div.my_dft_lnb > div.inf > div.name > a')
+      const el = document.querySelector('#content > div > div.my_dft > div.my_dft_lnb > div.inf > div.name > a');
   
       if (el === null) {
-          console.log('Warning token has expired')
-          throw new LoginError()
+          console.log('Warning token has expired');
+          throw new LoginError();
       }
   
-      return el.innerText
+      return el.innerText;
     })
+
+    return username;
+}
+
+const notify = async (mesg) => {
+    if (!fs.existsSync('telegram.conf')) {
+        return;
+    }
+
+    exec(`/usr/bin/printf \"${mesg}\" | /usr/bin/telegram-send --format markdown --config telegram.conf --stdin`)
 }
 
 const do_qchance = async (page) => {
@@ -67,14 +80,16 @@ const do_qchance = async (page) => {
 
       try {
           const username = await getUsername(page)
+          console.log(username)
+          // await notify(username);
+
           await do_qchance(page)
       } catch (err) {
         console.log(err)
 
         if (err instanceof LoginError) {
-            // statements to handle TypeError exceptions
+            await notify(err.message);
         } 
-
       } finally {
           await page.close();
       }

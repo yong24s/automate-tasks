@@ -32,18 +32,16 @@ const getCookie = async (token) => {
 const getUsername = async (page) => {
     await page.goto('https://www.qoo10.sg/gmkt.inc/My/Default.aspx');
 
-    const username = await page.evaluate(() => {
-      const el = document.querySelector('#content > div > div.my_dft > div.my_dft_lnb > div.inf > div.name > a');
-  
-      if (el === null) {
-          console.log('Warning token has expired');
-          throw new LoginError();
-      }
-  
-      return el.innerText;
+    const el = await page.evaluate(() => {
+      return document.querySelector('#content > div > div.my_dft > div.my_dft_lnb > div.inf > div.name > a');
     })
 
-    return username;
+    if (el === null) {
+        console.log('Warning token has expired');
+        throw new LoginError();
+    }
+
+    return el.innerText;
 }
 
 const notify = async (mesg) => {

@@ -33,7 +33,13 @@ const getUsername = async (page) => {
     await page.goto('https://www.qoo10.sg/gmkt.inc/My/Default.aspx');
 
     const el = await page.evaluate(() => {
-      return document.querySelector('#content > div > div.my_dft > div.my_dft_lnb > div.inf > div.name > a');
+        var el = document.querySelector('#content > div > div.my_dft > div.my_dft_lnb > div.inf > div.name > a');
+        
+        if (el === null) {
+            return null
+        }
+
+        return el.innerText;
     })
 
     if (el === null) {
@@ -41,7 +47,7 @@ const getUsername = async (page) => {
         throw new LoginError();
     }
 
-    return el.innerText;
+    return el;
 }
 
 const notify = async (mesg) => {

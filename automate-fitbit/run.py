@@ -35,6 +35,6 @@ if __name__ == '__main__':
     today_date = get_today_date()
 
     for token in credentials.TOKENS:
-        user_id = token[1]
-        access_token = token[2]
+        user_id = token[0]
+        access_token = token[1]
         log_running_activity(today_date, user_id, access_token)

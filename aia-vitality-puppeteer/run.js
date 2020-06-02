@@ -84,11 +84,14 @@ const notify = async (mesg) => {
     await page.setDefaultNavigationTimeout(60 * 1000 * 5);
 
     try {       
-        output += await login(page, token);
-        output += await get_device_page_details(page);
+        let tmp = await login(page, token);
+        tmp += await get_device_page_details(page);
+
+        output += tmp
+        console.log(tmp);
     } catch (error) {
-        console.log(error);
         output += '[!] exception\n\n';
+        console.log(error);
     }
 
     await page.close();
@@ -96,6 +99,6 @@ const notify = async (mesg) => {
   await context.close();
   await browser.close();
 
-  console.log(output);
   notify(output);
+  console.log(output);
 })();

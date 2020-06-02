@@ -77,9 +77,9 @@ const notify = async (mesg) => {
   });
 
   let output = '';
-  const context = await browser.createIncognitoBrowserContext();
   
   for (const token of secrets) {
+    const context = await browser.createIncognitoBrowserContext();
     const page = await context.newPage();
     await page.setDefaultNavigationTimeout(60 * 1000 * 5);
 
@@ -95,10 +95,10 @@ const notify = async (mesg) => {
     }
 
     await page.close();
+    await context.close();
   }
-  await context.close();
-  await browser.close();
-
   notify(output);
   console.log(output);
+
+  await browser.close();
 })();

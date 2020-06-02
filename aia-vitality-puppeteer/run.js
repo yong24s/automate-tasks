@@ -3,10 +3,10 @@
 const puppeteer = require('puppeteer-core');
 const os = require('os');
 
-const fs = require('fs')
+const fs = require('fs');
 const { exec } = require('child_process');
 
-const secrets = require('./secrets')
+const secrets = require('./secrets');
 
 const getExecPath = async () => {
     if (os.platform() === 'linux') {
@@ -36,24 +36,30 @@ const login = async (page, token) => {
 }
 
 const get_device_page_details = async (page) => {
-    const el_vitality_button = 'div.vitality.vitality-tab.choose-dashboard'
-    await page.click(el_vitality_button)
-    await page.waitFor(3000)   
-    
-    await page.evaluate(() => document.querySelector('a[href="/en/vitality/fitness-devices.html"]').click())
-    await page.waitFor(10000)
+    await page.waitForNavigation({waitUntil: 'domcontentloaded'});
+    await page.evaluate(() => {
+        window.location.href = '/en/vitality/fitness-devices.html#';
+    });
 
-    const fitbit_last_synced = await page.evaluate(() => {
-        const el = document.querySelector('h6[data-cardname="Fitbit Device"] + p');
+    await page.waitForNavigation({waitUntil: 'networkidle0'});
+
+    const el_fitbit_last_synced = 'h6[data-cardname="Fitbit Device"] + p';
+    await page.waitForSelector(el_fitbit_last_synced, {visible: true, timeout: 0});
+
+    const el_last_synced = 'ul.recent_points > :first-child';
+    await page.waitForSelector(el_last_synced, {visible: true, timeout: 0});
+
+    const fitbit_last_synced = await page.evaluate((el_fitbit_last_synced) => {
+        const el = document.querySelector(el_fitbit_last_synced);
         return el ? el.innerText : 'error';
-    })
+    }, el_fitbit_last_synced);
 
-    const last_synced = await page.evaluate(() => {
-        const el = document.querySelector('ul.recent_points > :first-child');
+    const last_synced = await page.evaluate((el_last_synced) => {
+        const el = document.querySelector(el_last_synced);
         return el ? el.innerText.replace(/(\r\n|\n|\r)/gm, ' ') : 'error';
-    })
+    }, el_last_synced);
 
-    return `Fitbit last synced: ${fitbit_last_synced}\nLast synced rewarded: ${last_synced}\n`;
+    return `Fitbit last synced: ${fitbit_last_synced}\nLast synced rewarded: ${last_synced}\n\n`;
 }
 
 const notify = async (mesg) => {
@@ -61,37 +67,35 @@ const notify = async (mesg) => {
         return;
     }
 
-    exec(`/usr/bin/printf \"${mesg}\" | /usr/bin/telegram-send --format markdown --config telegram.conf --stdin`)
+    exec(`/usr/bin/printf \"${mesg}\" | /usr/bin/telegram-send --format markdown --config telegram.conf --stdin`);
 }
 
 (async () => {
   const browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       executablePath: await getExecPath()
   });
 
+  let output = '';
   const context = await browser.createIncognitoBrowserContext();
-
+  
   for (const token of secrets) {
-    // const page = await browser.newPage();
     const page = await context.newPage();
-    await page.setDefaultNavigationTimeout(60 * 1000 * 5)
-    // await page.setViewport({ width: 1366, height: 768});
+    await page.setDefaultNavigationTimeout(60 * 1000 * 5);
 
     try {       
-        let output = await login(page, token)
-        await page.waitFor(5000)   
-        output += await get_device_page_details(page)
-
-        console.log(output)
-        notify(output)
+        output += await login(page, token);
+        output += await get_device_page_details(page);
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        output += '[!] exception\n\n';
     }
 
     await page.close();
   }
-
   await context.close();
   await browser.close();
+
+  console.log(output);
+  notify(output);
 })();

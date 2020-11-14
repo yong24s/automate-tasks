@@ -71,13 +71,12 @@ const notify = async (mesg) => {
 }
 
 (async () => {
+  let output = '';
   const browser = await puppeteer.launch({
       headless: true,
       executablePath: await getExecPath()
   });
 
-  let output = '';
-  
   for (const token of secrets) {
     const context = await browser.createIncognitoBrowserContext();
     const page = await context.newPage();
@@ -96,9 +95,12 @@ const notify = async (mesg) => {
 
     await page.close();
     await context.close();
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
+  
+  await browser.close();
+
   notify(output);
   console.log(output);
-
-  await browser.close();
 })();
+

@@ -23,7 +23,7 @@ const getExecPath = async () => {
 const login = async (page, token) => {
     await page.goto('https://myaia.aia.com.sg/en/my-aia/login.html');
     
-    const el_input_username = '.form-input input[name="username"][placeholder="Enter your username"]';
+    const el_input_username = '.form-input input[name="username"][placeholder="Enter username"]';
     await page.type(el_input_username, token.username);
 
     const el_input_password = '.form-input input[name="password"][placeholder="Enter password"]';
